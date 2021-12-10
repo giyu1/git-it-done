@@ -1,6 +1,23 @@
 // Creating container to reference issues 
 var issueContainerEl = document.querySelector("#issue-container");
 
+// Here I'm creating a DOM reference to the container I just created in my sing-repo.html
+var limitWarningEl = document.querySelector("#limit-warning");
+
+// Creatinga DisplayWarning function w/ parameters
+var displayWarning = function(repo) {
+    // add text to warning container 
+    limitWarningEl.textContent = "To see more than 30 issues, visit ";
+
+    var linkEl = document.createElement("a");
+    linkEl.textContent = "See More Issues on GitHub.com";
+    linkEl.setAttribute = ("href", "https://github.com/" + repo + "/issues");
+    linkEl.setAttribute = ("target", "_blank");
+
+    // append to warning container 
+    limitWarningEl.appendChild(linkEl);
+};
+
 // Creating a function to get repositories 
 var getRepoIssues = function (repo) {
     console.log(repo);
@@ -14,6 +31,12 @@ var getRepoIssues = function (repo) {
             response.json().then(function (data) {
                 // Changing the initial console log to display function created below on page
                 displayIssues(data)
+
+                // check if api has paginated issues
+                if (response.headers.get("Link")) {
+                    // Here I am replacing the console.log to to the function I just created (displayWarning)
+                    displayWarning(repo);
+                }
             });
         }
         else {
@@ -61,4 +84,4 @@ var displayIssues = function (issues) {
 
 
 // Callback function 
-getRepoIssues("twitter/interactive");
+getRepoIssues("twitter/check-my-repo");
