@@ -1,11 +1,33 @@
+// Creating a variable to display repo-names 
+var repoNameEl = document.querySelector("#repo-name");
+
+// Here I'm creating a new function getRepoName, and placing the call at the bottom 
+var getRepoName = function () {
+
+    var queryString = document.location.search;
+    var repoName = queryString.split("=")[1];
+    // took out the console.log and replaced it with a call function & repo name variable
+    getRepoIssues(repoName);
+    // Adding a conditional statement 
+    if (repoName) {
+        repoNameEl.textContent = repoName;
+
+        getRepoIssues(repoName);
+    } else {
+        // if no repo was given, redirect to the homepage
+        document.location.replace("./index.html")
+    }
+};
+
+
 // Creating container to reference issues 
 var issueContainerEl = document.querySelector("#issue-container");
 
 // Here I'm creating a DOM reference to the container I just created in my sing-repo.html
-var limitWarningEl = document.querySelector("#limit-warning");
+var limitWarningEl = document.querySelector("#limit-warning");ß
 
 // Creatinga DisplayWarning function w/ parameters
-var displayWarning = function(repo) {
+var displayWarning = function (repo) {
     // add text to warning container 
     limitWarningEl.textContent = "To see more than 30 issues, visit ";
 
@@ -20,7 +42,6 @@ var displayWarning = function(repo) {
 
 // Creating a function to get repositories 
 var getRepoIssues = function (repo) {
-    console.log(repo);
 
     var apiUrl = "https://api.github.com/repos/" + repo + "/issues?direction=asc";
 
@@ -40,7 +61,8 @@ var getRepoIssues = function (repo) {
             });
         }
         else {
-            alert("There was a problem with your request!");
+            // if not successful, redirect to homepage 
+            document.location.replace("./index.html");
         }
     });
 }
@@ -83,5 +105,8 @@ var displayIssues = function (issues) {
 };
 
 
-// Callback function 
-getRepoIssues("twitter/check-my-repo");
+// Callback function -- removing the hardcoded string in the function
+getRepoIssues();
+
+// Callback function for getRepoName
+getRepoName();
