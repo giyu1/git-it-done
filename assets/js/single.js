@@ -1,112 +1,97 @@
-// Creating a variable to display repo-names 
 var repoNameEl = document.querySelector("#repo-name");
+var issueContainerEl = document.querySelector("#issues-container");
+var limitWarningEl = document.querySelector("#limit-warning");
 
-// Here I'm creating a new function getRepoName, and placing the call at the bottom 
-var getRepoName = function () {
+var getRepoName = function() {
+  // grab repo name from url query string
+  var queryString = document.location.search;
+  var repoName = queryString.split("=")[1];
 
-    var queryString = document.location.search;
-    var repoName = queryString.split("=")[1];
-    // took out the console.log and replaced it with a call function & repo name variable
+  if (repoName) {
+    // display repo name on the page
+    repoNameEl.textContent = repoName;
+
     getRepoIssues(repoName);
-    // Adding a conditional statement 
-    if (repoName) {
-        repoNameEl.textContent = repoName;
+  } else {
+    // if no repo was given, redirect to the homepage
+    document.location.replace("./index.html");
+  }
+};
 
-        getRepoIssues(repoName);
+var getRepoIssues = function(repo) {
+  // format the github api url
+  var apiUrl = "https://api.github.com/repos/" + repo + "/issues?direction=asc";
+
+  // make a get request to url
+  fetch(apiUrl).then(function(response) {
+    // request was successful
+    if (response.ok) {
+      response.json().then(function(data) {
+        displayIssues(data);
+
+        // check if api has paginated issues
+        if (response.headers.get("Link")) {
+          displayWarning(repo);
+        }
+      });
     } else {
-        // if no repo was given, redirect to the homepage
-        document.location.replace("./index.html")
+      // if not successful, redirect to homepage
+      document.location.replace("./index.html");
     }
+  });
 };
 
+var displayIssues = function(issues) {
+  if (issues.length === 0) {
+    issueContainerEl.textContent = "This repo has no open issues!";
+    return;
+  }
 
-// Creating container to reference issues 
-var issueContainerEl = document.querySelector("#issue-container");
+  // loop over given issues
+  for (var i = 0; i < issues.length; i++) {
+    // create a link element to take users to the issue on github
+    var issueEl = document.createElement("a");
+    issueEl.classList = "list-item flex-row justify-space-between align-center";
+    issueEl.setAttribute("href", issues[i].html_url);
+    issueEl.setAttribute("target", "_blank");
 
-// Here I'm creating a DOM reference to the container I just created in my sing-repo.html
-var limitWarningEl = document.querySelector("#limit-warning");ß
+    // create span to hold issue title
+    var titleEl = document.createElement("span");
+    titleEl.textContent = issues[i].title;
 
-// Creatinga DisplayWarning function w/ parameters
-var displayWarning = function (repo) {
-    // add text to warning container 
-    limitWarningEl.textContent = "To see more than 30 issues, visit ";
+    // append to container
+    issueEl.appendChild(titleEl);
 
-    var linkEl = document.createElement("a");
-    linkEl.textContent = "See More Issues on GitHub.com";
-    linkEl.setAttribute = ("href", "https://github.com/" + repo + "/issues");
-    linkEl.setAttribute = ("target", "_blank");
+    // create a type element
+    var typeEl = document.createElement("span");
 
-    // append to warning container 
-    limitWarningEl.appendChild(linkEl);
+    // check if issue is an actual issue or a pull request
+    if (issues[i].pull_request) {
+      typeEl.textContent = "(Pull request)";
+    } else {
+      typeEl.textContent = "(Issue)";
+    }
+
+    // append to container
+    issueEl.appendChild(typeEl);
+
+    // append to the dom
+    issueContainerEl.appendChild(issueEl);
+  }
 };
 
-// Creating a function to get repositories 
-var getRepoIssues = function (repo) {
+var displayWarning = function(repo) {
+  // add text to warning container
+  limitWarningEl.textContent = "To see more than 30 issues, visit ";
 
-    var apiUrl = "https://api.github.com/repos/" + repo + "/issues?direction=asc";
+  // create link element
+  var linkEl = document.createElement("a");
+  linkEl.textContent = "GitHub.com";
+  linkEl.setAttribute("href", "https://github.com/" + repo + "/issues");
+  linkEl.setAttribute("target", "_blank");
 
-    // Using a fetch request to grab the code written above -- (2) Updating fetch request
-    fetch(apiUrl).then(function (response) {
-        // request was successful
-        if (response.ok) {
-            response.json().then(function (data) {
-                // Changing the initial console log to display function created below on page
-                displayIssues(data)
-
-                // check if api has paginated issues
-                if (response.headers.get("Link")) {
-                    // Here I am replacing the console.log to to the function I just created (displayWarning)
-                    displayWarning(repo);
-                }
-            });
-        }
-        else {
-            // if not successful, redirect to homepage 
-            document.location.replace("./index.html");
-        }
-    });
-}
-// function to display issues 
-var displayIssues = function (issues) {
-
-    // Creating a function that checks for issues 
-    if (issues.length === 0) {
-        issueContainerEl.textContent = "This repo has no open issues!";
-        return;
-    }
-    for (var i = 0; i < issues.length; i++) {
-        // create a link element to take users to the issue on github
-        var issueEl = document.createElement("a")
-        issueEl.classList = "list-item flex-row justify-space-between align-center";
-        issueEl.setAttribute("href", issues[i].html_url);
-        issueEl.setAttribute("target", "_blank");
-
-        // create span to hold issue title 
-        var titlEl = document.createElement("span");
-        titlEl.textContent = issues[i].title;
-
-        //append to container (titleEl being the child)
-        issueEl.appendChild(titlEl);
-
-        // create a type element 
-        var typeEl = document.createElement("span");
-
-        // check if issue is an actual issue or a pull request 
-        if (issues[i].pull_request) {
-            typeEl.textContent = "(Pull request)";
-        } else {
-            typeEl.textContent = "(Issue)";
-        }
-
-        // append to container 
-        issueEl.appendChild(typeEl);
-        issueContainerEl.appendChild(issueEl);
-    }
+  // append to warning container
+  limitWarningEl.appendChild(linkEl);
 };
 
-
-// Callback function -- removing the hardcoded string in the function
-getRepoIssues();
-
-// Callback function for getRepoName
 getRepoName();
